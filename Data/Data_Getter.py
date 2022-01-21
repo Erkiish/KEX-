@@ -2,7 +2,11 @@ import pandas as pd
 import pickle
 import time
 import os
-from Nasdaq_API import nasdaq_get_history
+
+if __name__ == '__main__':
+    from Nasdaq_API import nasdaq_get_history
+else:
+    from Data.Nasdaq_API import nasdaq_get_history
 """ 
 Missing data (oliver):
 BHG
@@ -52,7 +56,39 @@ def data_downloader(user: str):
             time.sleep(3)
 
 
-def load_data(user: str, time_frame: str) -> pd.DataFrame:
+def create_optimized_data_set(user: str):
+    """
+    Function for generating an optimized, easier to handle data-set for performing analysis.
+    The generated data from this function is used for the class DataClass in the Data_Class module.
+
+    Args:
+        user (str): Name of the user accessing this function. For locating the saved excel file generated from the function
+                    data_downloader.
+        
+    """
+
+    data = load_data(user)
+
+    time_interval_dict = {}
+    df_list = []
+
+    for ticker, df in data.items():
+        df = df.rename({'close':ticker}, axis=1).set_index('date')[ticker]
+        min_date = df.index.min()
+        max_date = df.index.max()
+
+        time_interval_dict[ticker] = {'min_date':min_date, 'max_date':max_date}
+        df_list.append(df)
+    
+    mega_df = pd.concat(df_list, axis=1)
+    mega_df.to_excel(DATA_STORAGE_LOCATION[user] + '/OPTIMIZED_DATA_SET.xlsx')
+    
+    time_interval_df = pd.DataFrame.from_dict(time_interval_dict, orient='index')
+    time_interval_df.index.name = 'ticker'
+    time_interval_df.to_excel(DATA_STORAGE_LOCATION[user] + '/TIME_INTERVALS.xlsx')
+        
+
+def load_data(user: str) -> dict[str, pd.DataFrame]:
     """
     Loads data from excel-sheet into specified time_frame and returns 
 
@@ -64,8 +100,11 @@ def load_data(user: str, time_frame: str) -> pd.DataFrame:
     Returns:
         pd.DataFrame: [description]
     """
+    file_loc = DATA_STORAGE_LOCATION[user] + '/STOCK_DATA.xlsx'
+    return pd.read_excel(file_loc, sheet_name=None, parse_dates=['date'])
+
 
 if __name__ == '__main__':
-    #data_downloader(user='oliver')
-    print('hej')
+    create_optimized_data_set('oliver')
+
 
