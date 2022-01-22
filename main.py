@@ -9,10 +9,13 @@ markovitz_class = MarkovitzMethod(monthly_data.iloc[:, 10:15])
 
 omega_test = markovitz_class.expected_return
 omega_test[:] = 1/len(omega_test)
+print(omega_test)
+
+markovitz_class.calculate_portfolio_variance(omega_test)
 
 
-markovitz_optimizer = MarkovitzGradientAscent(markovitz_class)
-markovitz_optimizer.stochastic_optimization()
+#markovitz_optimizer = MarkovitzGradientAscent(markovitz_class)
+#markovitz_optimizer.stochastic_optimization()
 
 
 #markovitz_test_res = markovitz_test_class.run_test()

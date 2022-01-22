@@ -26,21 +26,27 @@ class MarkovitzMethod:
     
     def calculate_portfolio_expected_return(self, portfolio_weights: pd.Series) -> float:
 
-        return portfolio_weights.T.dot(self.expected_return)
+        return sum(portfolio_weights*self.expected_return)
     
     def calculate_portfolio_variance(self, portfolio_weights: pd.Series) -> float:
 
         res = self.covariance.dot(portfolio_weights)
-
+    
         return portfolio_weights.T.dot(res)
     
-    def calculate_optimization_function_gradient(self, portfolio_weights: pd.Series):
+    def calculate_optimization_function(self, portfolio_weights: pd.Series, risk_weight: float=5):
+
+        risk = 5*self.calculate_portfolio_variance(portfolio_weights)
+
+        return self.calculate_portfolio_expected_return(portfolio_weights) - risk
+    
+    def calculate_optimization_function_gradient(self, portfolio_weights: pd.Series, risk_weight: float=5):
 
         self.gradient = portfolio_weights
 
         for ticker in self.tickers:
 
-            self.gradient[ticker] = self.expected_return[ticker] - (2*portfolio_weights[ticker]*self.covariance.loc[ticker, ticker] + sum(self.covariance.drop(ticker, axis=1).loc[ticker, :]*portfolio_weights.drop(ticker)) \
+            self.gradient[ticker] = self.expected_return[ticker] - risk_weight*(2*portfolio_weights[ticker]*self.covariance.loc[ticker, ticker] + sum(self.covariance.drop(ticker, axis=1).loc[ticker, :]*portfolio_weights.drop(ticker)) \
                 + sum(portfolio_weights.drop(ticker)*self.covariance.drop(ticker, axis=0).loc[:, ticker]))
         
         return self.gradient
@@ -75,10 +81,7 @@ class MarkovitzTest:
             omega_x.loc[:] = i/self.omega_len*1/(self.omega_len - 1)
             omega_x[ticker] = 1 - i/self.omega_len
 
-            portfolio_expected_return = self.markovitz_class.calculate_portfolio_expected_return(omega_x)
-            portfolio_variance = self.markovitz_class.calculate_portfolio_variance(omega_x)
-
-            omega_x_data[str(omega_x[ticker])] = portfolio_expected_return - portfolio_variance
+            omega_x_data[str(omega_x[ticker])] = self.markovitz_class.calculate_optimization_function(omega_x)
         
         return omega_x_data
 
@@ -97,9 +100,7 @@ class MarkovitzGradientAscent:
         else:
             omega_x = start_omega
         
-        portfolio_expected_return = self.markovitz_class.calculate_portfolio_expected_return(omega_x)
-        portfolio_variance = self.markovitz_class.calculate_portfolio_variance(omega_x)
-        optimization_result = portfolio_expected_return - portfolio_variance
+        optimization_result = self.markovitz_class.calculate_optimization_function(omega_x)
         print("STARTING VALUE:")
         print(optimization_result)
 
@@ -109,9 +110,7 @@ class MarkovitzGradientAscent:
 
             omega_x = (omega_x + gradient)/(sum(omega_x.abs() + gradient.abs()))
 
-        portfolio_expected_return = self.markovitz_class.calculate_portfolio_expected_return(omega_x)
-        portfolio_variance = self.markovitz_class.calculate_portfolio_variance(omega_x)
-        optimization_result = portfolio_expected_return - portfolio_variance
+        optimization_result = optimization_result = self.markovitz_class.calculate_optimization_function(omega_x)
         print("OPTIMIZED VALUE:")
         print(optimization_result)
 
