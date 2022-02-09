@@ -1,4 +1,4 @@
-from Data.Data_Class import DataSetGenerator
+from Data.Portfolio_Data import DataSetGenerator
 from MPT.Markovitz_Method import MarkovitzMethod, MarkovitzTest, MarkovitzGradientAscent
 
 dataclass = DataSetGenerator('oliver')

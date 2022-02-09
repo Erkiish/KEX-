@@ -4,6 +4,7 @@ if __name__ == '__main__':
     from Data_Getter import load_data, DATA_STORAGE_LOCATION
 else:
     from Data.Data_Getter import load_data, DATA_STORAGE_LOCATION
+
 class DataSetGenerator:
     """
     DataSetGenerator is a dataset generator that smoothly returns conformed data for a choosen period and time-frame.
