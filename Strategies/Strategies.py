@@ -22,7 +22,8 @@ class TESTRSIouStrategy:
         rsi_after = rsi.to_numpy()[1:]
         rsi_below = rsi_before < self.rsi_entry_cross
         rsi_over = rsi_after > self.rsi_entry_cross
-        return data.loc[np.logical_and(rsi_below, rsi_over)[:-1], :]
+        data['buy_signal'] = np.logical_and(rsi_below, rsi_over)
+        return data
     
     def get_sell_signals(self, data: pd.DataFrame) -> pd.Series:
         """Same logic right now as for get_buy_signal method doc."""
@@ -32,5 +33,6 @@ class TESTRSIouStrategy:
         rsi_after = rsi.to_numpy()[1:]
         rsi_below = rsi_before > self.rsi_exit_cross
         rsi_over = rsi_after < self.rsi_exit_cross
-        return data.loc[np.logical_and(rsi_below, rsi_over)[:-1], :]
+        data['sell_signal'] = np.logical_and(rsi_below, rsi_over)
+        return data
 
