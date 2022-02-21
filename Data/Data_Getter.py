@@ -3,9 +3,9 @@ import pickle
 import time
 import os
 
-if __name__ == '__main__':
+try:
     from Nasdaq_API import nasdaq_get_history
-else:
+except:
     from Data.Nasdaq_API import nasdaq_get_history
 """ 
 Missing data (oliver):

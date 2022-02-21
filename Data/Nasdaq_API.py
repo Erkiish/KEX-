@@ -3,6 +3,8 @@ import pandas as pd
 import requests
 import io
 
+### OMXS30 index nasdaq id är: SE0000337842
+
 def nasdaq_get_history(nasdaq_id: str, from_date: str, to_date: str, columns_to_add: Union[dict[str, str], bool]=False ) -> Union[pd.DataFrame, str]:
     """Does a request to the nasdaq api and returns dataframe of historical data for requested nasdaq_id/company and date-interval.
 
@@ -67,3 +69,8 @@ def nasdaq_get_history(nasdaq_id: str, from_date: str, to_date: str, columns_to_
         for key, value in columns_to_add.items():
             df[key] = value
     return df
+
+
+if __name__ == '__main__':
+    test = nasdaq_get_history('SE0000337842', '2022-01-01', '2022-02-15')
+    print(test)

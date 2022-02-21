@@ -1,5 +1,9 @@
-from Data.Data_Getter import load_data, DATA_STORAGE_LOCATION
-from Data.Data_Cleaning import nan_handler, zero_handler
+try:
+    from Data_Getter import load_data, DATA_STORAGE_LOCATION
+    from Data_Cleaning import nan_handler, zero_handler
+except:
+    from Data.Data_Getter import load_data, DATA_STORAGE_LOCATION
+    from Data.Data_Cleaning import nan_handler, zero_handler
 import pandas as pd
 from typing import Union
 
