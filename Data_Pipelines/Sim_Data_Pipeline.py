@@ -12,18 +12,13 @@ def indicator_adder_x(data: pd.DataFrame) -> pd.DataFrame:
     return add_ema(data, len=20)
 
 
-def sim_data_getter_x(n_stocks: int, len: int, drift: float=0.086, std: float=0.215, init_value: int=100) -> dict[str, pd.DataFrame]:
+def sim_data_getter_x(n_stocks: int, len: int, init_value: int=100) -> dict[str, pd.DataFrame]:
 
-    gbm_class = GBM(drift=drift, init_value=init_value, std=std)
+    gbm_class = GBM(init_value=init_value)
     return {
         str(stock): indicator_adder_x(gbm_class.generate_ohlcv_data(length=len))
         for stock in range(n_stocks)
     }
-
-        
-
-        
-
 
 
 def test_pipeline_x(n_stocks: int, len: int, strategy: object) -> dict[str, pd.DataFrame]:

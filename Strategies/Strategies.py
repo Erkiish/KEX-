@@ -18,7 +18,7 @@ class TESTRSIouStrategy:
         """For now only returns buy-signals. The buy signal time-series is shifted forward 1 day so that it can be interpreted as a buy from
         a signal that showed the day before."""
         rsi = data[f'rsi_{self.rsi_interval}']
-        data = data.iloc[1:]
+        data = data.iloc[1:].copy(deep=True)
         rsi_before = rsi.to_numpy()[:-1]
         rsi_after = rsi.to_numpy()[1:]
         rsi_below = rsi_before < self.rsi_entry_cross
