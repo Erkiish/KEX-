@@ -1,17 +1,36 @@
 
 from Strategies.Strategies import *
 from Data.Full_Data import FullData
+from Data.GBM import GBM
 import pandas as pd 
 
-def TestPipeline(user: str, data_settings: dict, strategy: object) -> dict[str, pd.DataFrame]:
+def indicator_adder_x(data: pd.DataFrame) -> pd.DataFrame:
 
-    raw_data_class = FullData(user)
-    raw_data = raw_data_class.get_data(**data_settings)
+    data = add_rsi(data, len=14)
+    data = add_sma(data, len=200)
+    data = add_sma(data, 30)
+    return add_ema(data, len=20)
 
-    return {ticker:strategy.get_sell_signals(strategy.get_buy_signals(raw_data[ticker])) for ticker in raw_data_class.tickers}
+
+def sim_data_getter_x(n_stocks: int, len: int, drift: float=0.086, std: float=0.215, init_value: int=100) -> dict[str, pd.DataFrame]:
+
+    gbm_class = GBM(drift=drift, init_value=init_value, std=std)
+    return {
+        str(stock): indicator_adder_x(gbm_class.generate_ohlcv_data(length=len))
+        for stock in range(n_stocks)
+    }
+
+        
+
+        
 
 
 
+def test_pipeline_x(n_stocks: int, len: int, strategy: object) -> dict[str, pd.DataFrame]:
+
+    data = sim_data_getter_x(n_stocks, len)
+
+    return {ticker:strategy.get_sell_signals(strategy.get_buy_signals(data[ticker])) for ticker in data.keys()}
 
 
 
