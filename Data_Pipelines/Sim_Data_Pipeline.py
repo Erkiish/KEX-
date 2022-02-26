@@ -13,12 +13,12 @@ import pandas_ta as ta
 class ScaleHandler:
 
     min_max_scaler_cols: list[Tuple]
-    standardizer_scaler_cols: list[Tuple]
-    divider_scaler_cols: dict[Union[float, str], Tuple]
+    standardize_scaler_cols: list[Tuple]
+    divide_scaler_cols: dict[Union[float, str], Tuple]
 
     def scale(self, data: np.ndarray) -> np.ndarray:
 
-        return self.divider_scaler(self.standardizer_scaler(self.min_max_scaler(data)))
+        return self.divide_scaler(self.standardize_scaler(self.min_max_scaler(data)))
     
     def min_max_scaler(self, data: np.ndarray) -> np.ndarray:
 
@@ -27,12 +27,20 @@ class ScaleHandler:
             min_ = np.amin(data[:, set_])
             max_ = np.amax(data[:, set_])
             data[:, set_] = (data[:, set_] - min_)/(max_ - min_ + 0.00001)
+
+        return data
+    
+    def min_max_reset(self, data: np.ndarray, reset_info: list) -> np.ndarray:
+
+        for params in reset_info:
+
+            data[:, params['cols']] = data[:, params['cols']]*(params['max'] - params['min'] + 0.00001) + params['min']
         
         return data
 
-    def standardizer_scaler(self, data: np.ndarray) -> np.ndarray:
+    def standardize_scaler(self, data: np.ndarray) -> np.ndarray:
         
-        for set_ in self.standardizer_scaler_cols:
+        for set_ in self.standardize_scaler_cols:
 
             stacked_data = data[:, set_]
             mean = np.mean(stacked_data)
@@ -42,14 +50,30 @@ class ScaleHandler:
 
         return data
     
-    def divider_scaler(self, data: np.ndarray) -> np.ndarray:
+    def standardize_reset(self, data: np.ndarray, reset_info: list) -> np.ndarray:
 
-        for div, set_ in self.divider_scaler_cols.items():
+        for params in reset_info:
+
+            data[:, params['cols']] = data[:, params['cols']]*params['std'] + params['mean']
+        
+        return data
+    
+    def divide_scaler(self, data: np.ndarray) -> np.ndarray:
+
+        for div, set_ in self.divide_scaler_cols.items():
 
             if div == 'MAX':
                 div = np.amax(data[:, set_])
 
             data[:, set_] = data[:, set_]/div
+        
+        return data
+    
+    def divide_reset(self, data: np.ndarray, reset_info: list) -> np.ndarray:
+
+        for params in reset_info:
+
+            data[:, params['cols']] = data[:, params['cols']]*params['div']
         
         return data
 
@@ -95,19 +119,26 @@ class DataPipeline:
         }
 
 
-    def _buy_sell_scale_fixer(self, data: np.ndarray) -> np.ndarray:
+    def _buy_sell_scale_fixer(self, raw_data: dict) -> Tuple[list, list]:
 
-        # Gets the buy and sell data
-        buy_sell_data = self.strategy.get_sell_signals(self.strategy.get_buy_signals(data))
-        
-        # Removes rows with nan-values
-        buy_sell_data = buy_sell_data[~np.isnan(buy_sell_data).any(axis=1)]
+        scaled_list = []
+        unscaled_list = []
+        for ticker in raw_data:
+            # Gets the buy and sell data
+            buy_sell_data = self.strategy.get_sell_signals(self.strategy.get_buy_signals(raw_data[ticker]))
+            
+            # Removes rows with nan-values
+            buy_sell_data = buy_sell_data[~np.isnan(buy_sell_data).any(axis=1)]
 
-        # Applies scale method and returnd ndarray
-        return self.scale_handler.scale(buy_sell_data)
+            unscaled_list.append(buy_sell_data.copy())
+
+             # Applies scale method and returnd ndarray
+            scaled_list.append(self.scale_handler.scale(buy_sell_data))
+
+        return scaled_list, unscaled_list
 
 
-    def get_data(self, resample: Union[bool, dict]=False) -> np.ndarray:
+    def get_data(self, resample: Union[bool, dict]=False) -> Tuple[np.ndarray, np.ndarray]:
         """
         Generates 3D numpy array of simulated stockdata and strategy result features. Shape is (batch_size, time_steps - 2, n_features=depends on strategy)
         Where n_features represents ohlc data, volume data, indicator data and sell- and buy-data in binary (0 if nothing 1 if sell/buy).
@@ -121,14 +152,14 @@ class DataPipeline:
         """
         raw_data = self._GBM_data_getter()
         
-        ndarray_list = [self._buy_sell_scale_fixer(raw_data[ticker]) for ticker in raw_data.keys()]
+        ndarray_list_scaled, ndarray_list_unscaled = self._buy_sell_scale_fixer(raw_data)
 
-        data = np.stack(ndarray_list).astype(np.float32)
+        data_scaled, data_unscaled = np.stack(ndarray_list_scaled).astype(np.float32), np.stack(ndarray_list_unscaled).astype(np.float32)
 
         if isinstance(resample, bool):
-            return data
+            return data_scaled, data_unscaled
         
-        return self.time_series_resampler(data, **resample)
+        return self.time_series_resampler(data_scaled, **resample), data_unscaled
         
 
 
