@@ -12,9 +12,17 @@ import numpy as np
 # DataPipeline params
 batch_size = 2000
 time_steps = 1500
-indicator_adder = indicator_adder_x
+indicator_adder = indicator_adder_x # Inspect choosen function in order to have an understanding of the column structure of final array. See comment at top of file.
 strategy = TESTRSIouStrategy(rsi_col_index=5)
-scale_handler = ScaleHandler([(4,)], [(8,), (0, 1, 2, 3, 6, 7, 9)], {100:(5,)}) # See comment above
+# Params for and initialization of ScalerHandler instance, see example of column structure at beginning of this file if needed.
+min_max_scaler_cols = [(4,)]
+standardizer_scaler_cols = [(8,), (0, 1, 2, 3, 6, 7, 9)]
+divider_scaler_cols = {100:(5,)}
+scale_handler = ScaleHandler(
+                            min_max_scaler_cols=min_max_scaler_cols, 
+                            standardizer_scaler_cols=standardizer_scaler_cols, 
+                            divider_scaler_cols=divider_scaler_cols
+) # See comment above
 # Initialize DataPipeline instance.
 data_pipeline = DataPipeline(
                             batch_size=batch_size, 
