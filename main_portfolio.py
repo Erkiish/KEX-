@@ -1,17 +1,28 @@
 from Data.Portfolio_Data import DataSetGenerator
 from MPT.Markovitz_Method import MarkovitzMethod, MarkovitzTest, MarkovitzGradientAscent
+import numpy as np
+import pandas_ta as ta
+import pandas as pd
 
-dataclass = DataSetGenerator('oliver')
+if __name__ == '__main__':
+    array = pd.Series(np.linspace(0, 1000, num=1500))
 
-monthly_data = dataclass.get_monthly_data('2012-01-01', '2015-01-01')
+    res = np.array(ta.rsi(array, length=14))
+    print(res)
 
-markovitz_class = MarkovitzMethod(monthly_data.iloc[:, 10:15])
 
-omega_test = markovitz_class.expected_return
-omega_test[:] = 1/len(omega_test)
-print(omega_test)
+def mark():
+    dataclass = DataSetGenerator('oliver')
 
-markovitz_class.calculate_portfolio_variance(omega_test)
+    monthly_data = dataclass.get_monthly_data('2012-01-01', '2015-01-01')
+
+    markovitz_class = MarkovitzMethod(monthly_data.iloc[:, 10:15])
+
+    omega_test = markovitz_class.expected_return
+    omega_test[:] = 1/len(omega_test)
+    print(omega_test)
+
+    markovitz_class.calculate_portfolio_variance(omega_test)
 
 
 #markovitz_optimizer = MarkovitzGradientAscent(markovitz_class)

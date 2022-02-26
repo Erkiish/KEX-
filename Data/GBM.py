@@ -17,35 +17,45 @@ class GBM:
     drift: float=0.1
     std: float=0.3  
 
-    def generate_data(self, length: int=250, type: Union[str, bool]=False) -> pd.DataFrame:
+    def generate_data(self, length: int=250, type: Union[str, bool]=False) -> np.ndarray:
 
         time_end = length/252
 
         if type == 'ohlc':
             return self.generate_ohlcv_data(length)
         
-        time_array = pd.DataFrame(np.linspace(0, time_end, num=length))
+        time_array = np.linspace(0, time_end, num=length)
         dt = time_array.iloc[1, 0] - time_array.iloc[0, 0]
 
         wiener_process = self._generate_wiener_process(self.init_value, dt, length)
         return self._generate_GBM_process(wiener_process, time_array)
    
-    def generate_ohlcv_data(self, length: int=250, intra_mean: float=0.006, intra_std: float=0.005) -> pd.DataFrame:
+    def generate_ohlcv_data(self, length: int=250, intra_mean: float=0.006, intra_std: float=0.005) -> np.ndarray:
+        """Generates ohlcv data (open, high, low, close, volume) in np.ndarray form.
+        The columns correspond to the following dict: {'open':0, 'high':1, 'low':2, 'close':3, 'volume':4}
+
+        Args:
+            length (int, optional): _description_. Defaults to 250.
+            intra_mean (float, optional): _description_. Defaults to 0.006.
+            intra_std (float, optional): _description_. Defaults to 0.005.
+
+        Returns:
+            pd.DataFrame: _description_
+        """
 
         time_end = length/1008
 
-        time_array = pd.DataFrame(np.linspace([0], [time_end], num=length))
-        self.dt = time_array.iloc[1, 0] - time_array.iloc[0, 0]
+        time_array = np.linspace([0], [time_end], num=length)
+        self.dt = time_array[1, 0] - time_array[0, 0]
 
         start_values = [self.init_value]
 
         wiener_process = self._generate_wiener_process(start_values, self.dt, length).T
         raw_gbm_data = self._generate_GBM_process(wiener_process, time_array)#.rename(columns={0:'open', 1:'low', 2:'high', 3:'close'})
-        raw_gbm_data[1] = raw_gbm_data
-        raw_gbm_data[2] = raw_gbm_data[0]
-        raw_gbm_data[3] = raw_gbm_data[0]
 
-        intra_day_var = pd.DataFrame(norm.rvs(size=(length, 4), loc=intra_mean, scale=intra_std)) + 1
+        raw_gbm_data = np.stack([raw_gbm_data, raw_gbm_data, raw_gbm_data, raw_gbm_data], axis=-1)
+
+        intra_day_var = norm.rvs(size=(length, 4), loc=intra_mean, scale=intra_std) + 1
 
         close_col = round(uniform.rvs(loc=0, scale=3))
         cols = [0, 1, 2, 3]
@@ -54,30 +64,27 @@ class GBM:
 
         ohlc_raw = intra_day_var*raw_gbm_data
 
-        ohlc_raw['low'] = ohlc_raw.min(axis=1) 
-        ohlc_raw['high'] = ohlc_raw.max(axis=1)
-        ohlc_raw['close'] = ohlc_raw[close_col]
-        ohlc_raw['open'] = ohlc_raw[open_col]
-    
-        subtract_drift = time_array.iloc[:, 0] 
-        subtract_drift.iloc[:] = self.drift/(len(subtract_drift)*10) + 1
-        subtract_drift = subtract_drift.cumprod()*self.init_value
-        ohlc_raw['volume'] = subtract_drift.to_numpy()*norm.rvs(size=(length,), loc=1000, scale=30)
+        subtract_drift = time_array[:, 0] 
+        subtract_drift[:] = self.drift/(len(subtract_drift)*10) + 1
+        subtract_drift = np.cumprod(subtract_drift)*self.init_value
+        volume = subtract_drift*norm.rvs(size=(length,), loc=1000, scale=30)
 
-        return ohlc_raw.drop(columns=[0, 1, 2, 3])
+        # ['open', 'high', 'low', 'close', 'volume']
+        return np.stack([ohlc_raw[:, open_col], ohlc_raw.max(axis=1), ohlc_raw.min(axis=1), ohlc_raw[:, close_col], volume], 
+                                axis=-1)
 
-    def _generate_wiener_process(self, start_value: Union[float, list], dt: float, n_steps: int) -> pd.DataFrame:
+    def _generate_wiener_process(self, start_value: Union[float, list], dt: float, n_steps: int) -> np.ndarray:
 
         start_values = np.asarray(start_value)
-        return pd.DataFrame(norm.rvs(size=start_values.shape + (n_steps,), scale=1))
+        return norm.rvs(size=start_values.shape + (n_steps,), scale=1)
     
-    def _generate_GBM_process(self, wiener_process: pd.DataFrame, time_array: pd.Series, std: Union[float, bool]=False, drift: Union[float, bool]=False) -> pd.DataFrame:
+    def _generate_GBM_process(self, wiener_process: np.ndarray, time_array: np.ndarray, std: Union[float, bool]=False, drift: Union[float, bool]=False) -> np.ndarray:
 
         if not std:
             std = self.std
         if not drift:
             drift = self.drift
-        return self.init_value*pd.DataFrame(np.exp(std*wiener_process*np.sqrt(self.dt) + (drift - (std**2)/2)*self.dt)).cumprod()#(drift - (std**2)/2)
+        return self.init_value*np.cumprod(np.exp(std*wiener_process*np.sqrt(self.dt) + (drift - (std**2)/2)*self.dt))#(drift - (std**2)/2)
 
 
 class ParameterEstimation:

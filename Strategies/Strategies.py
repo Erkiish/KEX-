@@ -6,37 +6,46 @@ else:
 import pandas as pd
 import numpy as np
 from dataclasses import dataclass
+from abc import ABCMeta, abstractmethod
 
-# För problem med metoderna i Strategy klasserna
-pd.options.mode.chained_assignment = None  # default='warn'
+class Strategy(metaclass=ABCMeta):
+
+    @abstractmethod
+    def get_buy_signals(self, data: np.ndarray) -> np.ndarray:
+        pass
+
+    @abstractmethod
+    def get_sell_signals(self, data: np.ndarray) -> np.ndarray:
+        pass
+
 
 @dataclass
-class TESTRSIouStrategy:
+class TESTRSIouStrategy(Strategy):
 
-    rsi_interval: int=14
+    rsi_col_index: int
     rsi_entry_cross: int=30
     rsi_exit_cross: int=55
 
-    def get_buy_signals(self, data: pd.DataFrame) -> pd.Series:
+    def get_buy_signals(self, data: np.ndarray) -> np.ndarray:
         """For now only returns buy-signals. The buy signal time-series is shifted forward 1 day so that it can be interpreted as a buy from
         a signal that showed the day before."""
-        rsi = data[f'rsi_{self.rsi_interval}']
-        data = data.iloc[1:].copy(deep=True)
-        rsi_before = rsi.to_numpy()[:-1]
-        rsi_after = rsi.to_numpy()[1:]
+        rsi = data[:, self.rsi_col_index]
+        data = data[1:]
+        rsi_before = rsi[:-1]
+        rsi_after = rsi[1:]
         rsi_below = rsi_before < self.rsi_entry_cross
         rsi_over = rsi_after > self.rsi_entry_cross
-        data['buy_signal'] = np.concatenate(([0], np.logical_and(rsi_below, rsi_over)))[:-1]
-        return data
+        buy_data = np.concatenate(([0], np.logical_and(rsi_below, rsi_over)))[:-1]
+        return np.hstack([data, buy_data.reshape(-1, 1)])
     
-    def get_sell_signals(self, data: pd.DataFrame) -> pd.Series:
+    def get_sell_signals(self, data: np.ndarray) -> np.ndarray:
         """Same logic right as for get_buy_signal method doc."""
-        rsi = data[f'rsi_{self.rsi_interval}']
-        data = data.iloc[1:]
-        rsi_before = rsi.to_numpy()[:-1]
-        rsi_after = rsi.to_numpy()[1:]
+        rsi = data[:, self.rsi_col_index]
+        data = data[1:]
+        rsi_before = rsi[:-1]
+        rsi_after = rsi[1:]
         rsi_below = rsi_before > self.rsi_exit_cross
         rsi_over = rsi_after < self.rsi_exit_cross
-        data['sell_signal'] = np.concatenate(([0], np.logical_and(rsi_below, rsi_over)))[:-1]
-        return data
+        sell_data = np.concatenate(([0], np.logical_and(rsi_below, rsi_over)))[:-1]
+        return np.hstack([data, sell_data.reshape(-1, 1)])
 
