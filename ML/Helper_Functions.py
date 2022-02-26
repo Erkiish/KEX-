@@ -1,6 +1,7 @@
 import numpy as np
 import plotly.graph_objects as go
-from typing import Tuple, Union
+from typing import Tuple, Union, Dict, List
+
 
 def compute_result_info(y_pred: np.ndarray, y_correct: np.ndarray) -> None:
 
@@ -22,7 +23,7 @@ def compute_result_info(y_pred: np.ndarray, y_correct: np.ndarray) -> None:
 
     print('Total number of actual trades: ', y_correct.sum())
 
-    print('Number of correctly predicted trades: ', sum_trade_guess - fp - fn)
+    print('Number of correctly predicted trades: ', max(sum_trade_guess - fp - fn, 0))
 
     print('Number of correctly predicted non-trades: ', (y_correct == 0).sum() - (res_2 == -1).sum())
 
@@ -32,7 +33,7 @@ def compute_result_info(y_pred: np.ndarray, y_correct: np.ndarray) -> None:
 
     print('Number of false negatives: ', fn)
 
-def view_false_positives(y_pred: np.ndarray, y_correct: np.ndarray, col_y: int, n_views: int, data: np.ndarray, plot_cols: dict[int, str]):
+def view_false_positives(y_pred: np.ndarray, y_correct: np.ndarray, col_y: int, n_views: int, data: np.ndarray, plot_cols: Dict[int, str]):
     """Generates plots of specified ammount of false positives and corresponding time series.
 
     Args:
@@ -46,7 +47,7 @@ def view_false_positives(y_pred: np.ndarray, y_correct: np.ndarray, col_y: int, 
 
     view_false_pn(y_pred=y_pred, y_correct=y_correct, pn=-1, col_y=[col_y, 'False positive'], n_views=n_views, data=data, plot_cols=plot_cols)
 
-def view_false_negatives(y_pred: np.ndarray, y_correct: np.ndarray, col_y: int, n_views: int, data: np.ndarray, plot_cols: dict[int, str]):
+def view_false_negatives(y_pred: np.ndarray, y_correct: np.ndarray, col_y: int, n_views: int, data: np.ndarray, plot_cols: Dict[int, str]):
     """Generates plots of specified ammount of false negatives and corresponding time series.
 
     Args:
@@ -60,7 +61,7 @@ def view_false_negatives(y_pred: np.ndarray, y_correct: np.ndarray, col_y: int, 
 
     view_false_pn(y_pred=y_pred, y_correct=y_correct, pn=1, col_y=[col_y, 'False negative'], n_views=n_views, data=data, plot_cols=plot_cols)
 
-def view_false_pn(y_pred: np.ndarray, y_correct: np.ndarray, pn: int, col_y: list[Union[int, str]], n_views: int, data: np.ndarray, plot_cols: dict[int, str]):
+def view_false_pn(y_pred: np.ndarray, y_correct: np.ndarray, pn: int, col_y: List[Union[int, str]], n_views: int, data: np.ndarray, plot_cols: Dict[int, str]):
 
     false_pn_index = ((y_correct - y_pred) == pn).nonzero()[0]
     nbr_false_pn = false_pn_index.shape[0]

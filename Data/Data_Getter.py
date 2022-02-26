@@ -1,7 +1,7 @@
 import pandas as pd 
 import pickle
 import time
-import os
+from typing import Dict
 
 try:
     from Nasdaq_API import nasdaq_get_history
@@ -88,7 +88,7 @@ def create_optimized_data_set(user: str):
     time_interval_df.to_excel(DATA_STORAGE_LOCATION[user] + '/TIME_INTERVALS.xlsx')
         
 
-def load_data(user: str) -> dict[str, pd.DataFrame]:
+def load_data(user: str) -> Dict[str, pd.DataFrame]:
     """
     Loads data from excel-sheet into specified time_frame and returns 
 

@@ -1,11 +1,11 @@
-from typing import Union
+from typing import Union, Dict
 import pandas as pd
 import requests
 import io
 
 ### OMXS30 index nasdaq id är: SE0000337842
 
-def nasdaq_get_history(nasdaq_id: str, from_date: str, to_date: str, columns_to_add: Union[dict[str, str], bool]=False ) -> Union[pd.DataFrame, str]:
+def nasdaq_get_history(nasdaq_id: str, from_date: str, to_date: str, columns_to_add: Union[Dict[str, str], bool]=False ) -> Union[pd.DataFrame, str]:
     """Does a request to the nasdaq api and returns dataframe of historical data for requested nasdaq_id/company and date-interval.
 
     Args:

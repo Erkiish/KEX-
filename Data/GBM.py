@@ -1,7 +1,7 @@
 import pandas as pd
 import numpy as np
 from dataclasses import dataclass
-from typing import Union
+from typing import Union, Dict
 from scipy.stats import norm, uniform
 import random
 import plotly.graph_objects as go
@@ -89,7 +89,7 @@ class GBM:
 
 class ParameterEstimation:
 
-    def __init__(self, user: Union[str, bool]=False, data: Union[dict[str, pd.DataFrame], bool]=False):
+    def __init__(self, user: Union[str, bool]=False, data: Union[Dict[str, pd.DataFrame], bool]=False):
         
         if user:
             self.data_class = FullData(user)

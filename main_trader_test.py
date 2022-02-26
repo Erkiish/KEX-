@@ -3,6 +3,7 @@ from Data_Pipelines.Sim_Data_Pipeline import DataPipeline, ScaleHandler, indicat
 from ML.Pure_LSTM import LSTM_model_x_creator
 from ML.Helper_Functions import compute_result_info, view_false_positives, view_false_negatives
 import numpy as np
+import tensorflow as tf
 
 # np.ndarray: numpy array with column in order: open(0), high(1), low(2), close(3), volume(4) # This is the only constant
 # :::, rsi_14(5), sma_200(6),sma_30(7), pct_change(8), ema_20(9):::, # This section can vary in length and type of data, this example is based on indicator_adder_x!!
@@ -46,7 +47,7 @@ data_unscaled = data_unscaled[-un_resampled_data_samples:, :20, :]
 resample_params = {
                     'target_col': 10,
                     'series_length': 30, 
-                    'class_pct': {0:0.9, 1:0.1}
+                    'class_pct': {0:0.95, 1:0.05}
 }
 
 # Resampled data
@@ -77,8 +78,8 @@ X_val, Y_val = resampled_data[train_samples:val_sample_end, :, :10], resampled_d
 model = LSTM_model_x_creator(input_shape=(None, X_train.shape[2]), n_binary_classifiers=1, return_sequences=False)
 
 ##### Testing of the model #####
-epochs = 5
-model.fit(X_train, Y_train, epochs=epochs, validation_data=(X_val, Y_val))
+epochs = 20
+model.fit(X_train, Y_train, epochs=epochs, validation_data=(X_val, Y_val), callbacks=[tf.keras.callbacks.EarlyStopping(patience=10)])
 
 
 ##### Testing of the model #####

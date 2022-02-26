@@ -5,7 +5,7 @@ except:
     from Data.Data_Getter import load_data, DATA_STORAGE_LOCATION
     from Data.Data_Cleaning import nan_handler, zero_handler
 import pandas as pd
-from typing import Union
+from typing import Union, Dict
 
 class FullData:
 
@@ -17,7 +17,7 @@ class FullData:
         
         self.all_data_cleaned = self._clean_data()
     
-    def _clean_data(self) -> dict[str, pd.DataFrame]:
+    def _clean_data(self) -> Dict[str, pd.DataFrame]:
 
         all_df_dict = {}
         df_len_dict = {}
@@ -35,7 +35,7 @@ class FullData:
 
         return all_df_dict
 
-    def get_data(self, start_date: str='1900-01-01', end_date: str='2050-01-01', min_len: int=0, tickers: Union[list, bool]=False) -> dict[str, pd.DataFrame]:
+    def get_data(self, start_date: str='1900-01-01', end_date: str='2050-01-01', min_len: int=0, tickers: Union[list, bool]=False) -> Dict[str, pd.DataFrame]:
         """Method for getting data based on specifications of dates, minimum length and tickers.
 
         Args:

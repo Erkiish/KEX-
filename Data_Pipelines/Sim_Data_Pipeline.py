@@ -3,7 +3,7 @@ from Strategies.Strategies import *
 from Data.GBM import GBM
 import pandas as pd 
 from dataclasses import dataclass
-from typing import Union, Tuple, Callable
+from typing import Union, Tuple, Callable, Dict, List
 from scipy.stats import uniform
 import pandas_ta as ta
 
@@ -12,9 +12,9 @@ import pandas_ta as ta
 @dataclass
 class ScaleHandler:
 
-    min_max_scaler_cols: list[Tuple]
-    standardize_scaler_cols: list[Tuple]
-    divide_scaler_cols: dict[Union[float, str], Tuple]
+    min_max_scaler_cols: List[Tuple]
+    standardize_scaler_cols: List[Tuple]
+    divide_scaler_cols: Dict[Union[float, str], Tuple]
 
     def scale(self, data: np.ndarray) -> np.ndarray:
 
@@ -110,7 +110,7 @@ class DataPipeline:
     strategy: Strategy
     scale_handler: ScaleHandler
 
-    def _GBM_data_getter(self, init_value: int=100) -> dict[str, np.ndarray]:
+    def _GBM_data_getter(self, init_value: int=100) -> Dict[str, np.ndarray]:
 
         gbm_class = GBM(init_value=init_value)
         return {
@@ -119,7 +119,7 @@ class DataPipeline:
         }
 
 
-    def _buy_sell_scale_fixer(self, raw_data: dict) -> Tuple[list, list]:
+    def _buy_sell_scale_fixer(self, raw_data: Dict) -> Tuple[list, list]:
 
         scaled_list = []
         unscaled_list = []
@@ -163,7 +163,7 @@ class DataPipeline:
         
 
 
-    def time_series_resampler(self, data: np.ndarray, target_col: int, series_length: int, class_pct: dict[int, float]) -> np.ndarray:
+    def time_series_resampler(self, data: np.ndarray, target_col: int, series_length: int, class_pct: Dict[int, float]) -> np.ndarray:
         """ 'Resamples' and converts numpy dataset into specified length and class weights.
 
         Args:
