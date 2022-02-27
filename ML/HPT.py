@@ -56,6 +56,3 @@ def HPTBayesian(hypermodel: Callable, project_name: str, max_trials: int=1000):
         project_name=project_name
     )
 
-
-
-print('\\')

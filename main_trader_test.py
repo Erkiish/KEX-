@@ -10,6 +10,8 @@ import tensorflow as tf
 # :::, rsi_14(5), sma_200(6),sma_30(7), pct_change(8), ema_20(9):::, # This section can vary in length and type of data, this example is based on indicator_adder_x!!
 # buy_signals(10), sell_signals(11) # This changes based on what indicator_adder, that is how many indicators that are added.
 
+# TensorBoard startup command terminal: tensorboard --logdir path_to_your_logs
+
 # DataPipeline params
 batch_size = 2000
 time_steps = 1500
@@ -46,16 +48,19 @@ data_dict = data_pipeline.get_data_full()
 model = LSTM_model_x_creator(input_shape=(None, data_dict['X_train'].shape[2]), n_binary_classifiers=1, return_sequences=False)
 
 ##### Testing and evalutaion of the model #####
+model_name = 'LSTM_test'
 
 ML_Pipeline = MLPipeline(
     ML_model=model,
+    model_name=model_name,
     data_dict=data_dict
 )
 
-EPOCHS = 5
-
+EPOCHS = 20
+tensorboard = True
 ML_Pipeline.fit_model(
-    epochs=EPOCHS
+    epochs=EPOCHS,
+    tensorboard=tensorboard
 )
 
 ML_Pipeline.evaluate_model(

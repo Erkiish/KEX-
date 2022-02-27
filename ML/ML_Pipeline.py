@@ -4,8 +4,8 @@ from typing import List, Union
 from ML.Helper_Functions import compute_result_info, view_false_positives, view_false_negatives
 import numpy as np
 import json
-from ML.CONSTANSTS import MODEL_EVAL_RESULTS_PATH, PATH_ADDER
-
+from ML.CONSTANSTS import MODEL_EVAL_RESULTS_PATH, PATH_ADDER, TENSORBOARD_LOG_FIT_PATH
+import datetime
 @dataclass
 class MLPipeline:
     """
@@ -27,10 +27,11 @@ class MLPipeline:
                         The keys 'X_train', 'Y_train', 'X_val', 'Y_val' and 'X_unresampled_unscaled' are required.
     """
     ML_model: tf.keras.Model
+    model_name: str
     data_dict: dict
     _fit: bool=False
 
-    def fit_model(self, epochs: int, callbacks = None):
+    def fit_model(self, epochs: int, callbacks = None, tensorboard: bool=False, tensorboard_kwargs: dict=None):
         """
         Method for fitting model.
 
@@ -42,6 +43,13 @@ class MLPipeline:
 
         if callbacks is None:
             callbacks = [tf.keras.callbacks.EarlyStopping(patience=10)]
+            if tensorboard:
+                log_dir = TENSORBOARD_LOG_FIT_PATH + self.model_name + datetime.datetime.now().strftime("%Y%m%d-%H%M%S")
+                if tensorboard_kwargs is None:
+                    callbacks.append(tf.keras.callbacks.TensorBoard(log_dir=log_dir, histogram_freq=1))
+                else:
+                    callbacks.append(tf.keras.callbacks.TensorBoard(log_dir=log_dir, **tensorboard_kwargs))
+
         self.ML_model.fit(
             x=self.data_dict['X_train'],
             y=self.data_dict['Y_train'],
