@@ -22,6 +22,9 @@ class ScaleHandler:
     
     def min_max_scaler(self, data: np.ndarray) -> np.ndarray:
 
+        if not self.min_max_scaler_cols:
+            return data
+
         for set_ in self.min_max_scaler_cols:
 
             min_ = np.amin(data[:, set_])
@@ -39,6 +42,9 @@ class ScaleHandler:
         return data
 
     def standardize_scaler(self, data: np.ndarray) -> np.ndarray:
+
+        if not self.standardize_scaler_cols:
+            return data
         
         for set_ in self.standardize_scaler_cols:
 
@@ -59,6 +65,9 @@ class ScaleHandler:
         return data
     
     def divide_scaler(self, data: np.ndarray) -> np.ndarray:
+
+        if not self.divide_scaler_cols:
+            return data
 
         for div, set_ in self.divide_scaler_cols.items():
 
@@ -101,23 +110,32 @@ def indicator_adder_x(data: np.ndarray) -> np.ndarray:
     ], axis=-1)
     return np.concatenate([data, indicators], axis=1)
 
+def rsi_adder(data: np.ndarray) -> np.ndarray:
+
+    return np.hstack([data, ta.rsi(pd.Series(data[:, 3]), length=14).to_numpy().reshape(-1, 1)])
+
 @dataclass
 class DataPipeline:
 
     batch_size: int
     time_steps: int
-    indicator_adder: Callable
     strategy: Strategy
     scale_handler: ScaleHandler
-
+    indicator_adder: Callable=None
+    
     def _GBM_data_getter(self, init_value: int=100) -> Dict[str, np.ndarray]:
 
         gbm_class = GBM(init_value=init_value)
-        return {
-            str(stock): self.indicator_adder(gbm_class.generate_ohlcv_data(length=self.time_steps))
-            for stock in range(self.batch_size)
+        if self.indicator_adder is None:
+            return{
+                str(stock): gbm_class.generate_ohlcv_data(length=self.time_steps)
+                for stock in range(self.batch_size)
         }
-
+        else:
+            return {
+                str(stock): self.indicator_adder(gbm_class.generate_ohlcv_data(length=self.time_steps))
+                for stock in range(self.batch_size)
+        }
 
     def _buy_sell_scale_fixer(self, raw_data: Dict) -> Tuple[list, list]:
 
@@ -164,7 +182,7 @@ class DataPipeline:
     def get_data_full(self, un_resampled_data_fraction: float=0.333, target_col: int=10,
                          series_length: int=30, class_pct: Union[float, Dict]=None,
                          train_samples_fraction: float=0.6, feature_start_col: int=0,
-                         feature_end_col: int=10
+                         feature_end_col: int=None, remove_features_from_train_val: Tuple=None
                          ) -> Dict[str, np.ndarray]:
         """ Method for generating the full scope of an ML data pipeline. Lots of presupposed paramaters for ease of use when lots of parameters make code unreadable.
         Can be seen as the final abstraction layer of an data-pipeline of an ML-project.
@@ -178,8 +196,8 @@ class DataPipeline:
             class_pct (Union[float, Dict], optional): Dict containing class fractions for generating resampled data. Defaults to {0:0.9, 1:0.1}.
             train_samples_fraction (float, optional): The fraction of the data to be used for training of the model. Defaults to 0.6.
             feature_start_col (int, optional): The column where features for the X_data starts. Defaults to 0.
-            feature_end_col (int, optional): The column where features for the X_data ends. Defaults to 10.
-
+            feature_end_col (int, optional): The column where features for the X_data ends. Defaults to target_col - 1.
+            remove_feature_from_train_val (Tuple, optional): A tuple of columns to be removed from training, validation and test data. Only left in 'X_unresampled_unscaled'. Defaults to None/().
         Returns:
             Dict[str, np.ndarray]: {
                                     'X_train': np.ndarray,
@@ -193,6 +211,10 @@ class DataPipeline:
                                     'Y_unresample_pred': np.ndarray
         }
         """
+        if feature_end_col is None:
+            feature_end_col = target_col - 1
+        if remove_features_from_train_val is None:
+            remove_features_from_train_val = ()
         # Parameter setup for time series resampling.
         if class_pct is None:
             class_pct = {0:0.9, 1:0.1}
@@ -203,6 +225,8 @@ class DataPipeline:
         }
         # Gets scaled and unscaled data.
         data_scaled, data_unscaled = self.get_data_lite()
+        # Remove cols so that target_col in resampling can match up.
+        data_scaled = np.delete(data_scaled, remove_features_from_train_val, axis=2)
         # Saves unscaled and un_resampled_data for matching later on.
         un_resampled_data_samples = round(self.batch_size*un_resampled_data_fraction)
         un_resampled_data = data_scaled[-un_resampled_data_samples:, :series_length, :]
@@ -230,11 +254,11 @@ class DataPipeline:
             'Y_train': Y_train,
             'X_val': X_val,
             'Y_val': Y_val,
-            'X_unresampled_unscaled': data_unscaled[:, :, feature_start_col:feature_end_col],
+            'X_unresampled_unscaled': data_unscaled[:, :, feature_start_col:],
             'X_resample_pred': resampled_data[val_sample_end:, :, feature_start_col:feature_end_col],
             'Y_resample_pred': resampled_data[val_sample_end:, -1, target_col],
             'X_unresample_pred': un_resampled_data[:, :, feature_start_col:feature_end_col],
-            'Y_unresample_pred': un_resampled_data[:, -1, 10],
+            'Y_unresample_pred': un_resampled_data[:, -1, target_col],
         }
 
     def time_series_resampler(self, data: np.ndarray, target_col: int, series_length: int, class_pct: Dict[int, float]) -> np.ndarray:

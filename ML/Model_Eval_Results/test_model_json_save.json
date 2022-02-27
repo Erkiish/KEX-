@@ -9,12 +9,131 @@
                     "batch_input_shape": [
                         null,
                         null,
-                        10
+                        4
                     ],
                     "dtype": "float32",
                     "sparse": false,
                     "ragged": false,
-                    "name": "lstm_input"
+                    "name": "conv1d_input"
+                }
+            },
+            {
+                "class_name": "Conv1D",
+                "config": {
+                    "name": "conv1d",
+                    "trainable": true,
+                    "batch_input_shape": [
+                        null,
+                        null,
+                        4
+                    ],
+                    "dtype": "float32",
+                    "filters": 40,
+                    "kernel_size": [
+                        10
+                    ],
+                    "strides": [
+                        1
+                    ],
+                    "padding": "valid",
+                    "data_format": "channels_last",
+                    "dilation_rate": [
+                        1
+                    ],
+                    "groups": 1,
+                    "activation": "linear",
+                    "use_bias": true,
+                    "kernel_initializer": {
+                        "class_name": "GlorotUniform",
+                        "config": {
+                            "seed": null
+                        }
+                    },
+                    "bias_initializer": {
+                        "class_name": "Zeros",
+                        "config": {}
+                    },
+                    "kernel_regularizer": null,
+                    "bias_regularizer": null,
+                    "activity_regularizer": null,
+                    "kernel_constraint": null,
+                    "bias_constraint": null
+                }
+            },
+            {
+                "class_name": "Conv1D",
+                "config": {
+                    "name": "conv1d_1",
+                    "trainable": true,
+                    "dtype": "float32",
+                    "filters": 30,
+                    "kernel_size": [
+                        5
+                    ],
+                    "strides": [
+                        1
+                    ],
+                    "padding": "valid",
+                    "data_format": "channels_last",
+                    "dilation_rate": [
+                        1
+                    ],
+                    "groups": 1,
+                    "activation": "linear",
+                    "use_bias": true,
+                    "kernel_initializer": {
+                        "class_name": "GlorotUniform",
+                        "config": {
+                            "seed": null
+                        }
+                    },
+                    "bias_initializer": {
+                        "class_name": "Zeros",
+                        "config": {}
+                    },
+                    "kernel_regularizer": null,
+                    "bias_regularizer": null,
+                    "activity_regularizer": null,
+                    "kernel_constraint": null,
+                    "bias_constraint": null
+                }
+            },
+            {
+                "class_name": "Conv1D",
+                "config": {
+                    "name": "conv1d_2",
+                    "trainable": true,
+                    "dtype": "float32",
+                    "filters": 20,
+                    "kernel_size": [
+                        2
+                    ],
+                    "strides": [
+                        1
+                    ],
+                    "padding": "valid",
+                    "data_format": "channels_last",
+                    "dilation_rate": [
+                        1
+                    ],
+                    "groups": 1,
+                    "activation": "linear",
+                    "use_bias": true,
+                    "kernel_initializer": {
+                        "class_name": "GlorotUniform",
+                        "config": {
+                            "seed": null
+                        }
+                    },
+                    "bias_initializer": {
+                        "class_name": "Zeros",
+                        "config": {}
+                    },
+                    "kernel_regularizer": null,
+                    "bias_regularizer": null,
+                    "activity_regularizer": null,
+                    "kernel_constraint": null,
+                    "bias_constraint": null
                 }
             },
             {
@@ -22,11 +141,6 @@
                 "config": {
                     "name": "lstm",
                     "trainable": true,
-                    "batch_input_shape": [
-                        null,
-                        null,
-                        10
-                    ],
                     "dtype": "float32",
                     "return_sequences": true,
                     "return_state": false,
@@ -34,7 +148,7 @@
                     "stateful": false,
                     "unroll": false,
                     "time_major": false,
-                    "units": 50,
+                    "units": 20,
                     "activation": "tanh",
                     "recurrent_activation": "sigmoid",
                     "use_bias": true,
@@ -126,52 +240,6 @@
                     "stateful": false,
                     "unroll": false,
                     "time_major": false,
-                    "units": 20,
-                    "activation": "tanh",
-                    "recurrent_activation": "sigmoid",
-                    "use_bias": true,
-                    "kernel_initializer": {
-                        "class_name": "GlorotUniform",
-                        "config": {
-                            "seed": null
-                        }
-                    },
-                    "recurrent_initializer": {
-                        "class_name": "Orthogonal",
-                        "config": {
-                            "gain": 1.0,
-                            "seed": null
-                        }
-                    },
-                    "bias_initializer": {
-                        "class_name": "Zeros",
-                        "config": {}
-                    },
-                    "unit_forget_bias": true,
-                    "kernel_regularizer": null,
-                    "recurrent_regularizer": null,
-                    "bias_regularizer": null,
-                    "activity_regularizer": null,
-                    "kernel_constraint": null,
-                    "recurrent_constraint": null,
-                    "bias_constraint": null,
-                    "dropout": 0.0,
-                    "recurrent_dropout": 0.0,
-                    "implementation": 2
-                }
-            },
-            {
-                "class_name": "LSTM",
-                "config": {
-                    "name": "lstm_3",
-                    "trainable": true,
-                    "dtype": "float32",
-                    "return_sequences": true,
-                    "return_state": false,
-                    "go_backwards": false,
-                    "stateful": false,
-                    "unroll": false,
-                    "time_major": false,
                     "units": 10,
                     "activation": "tanh",
                     "recurrent_activation": "sigmoid",
@@ -209,7 +277,7 @@
             {
                 "class_name": "LSTM",
                 "config": {
-                    "name": "lstm_4",
+                    "name": "lstm_3",
                     "trainable": true,
                     "dtype": "float32",
                     "return_sequences": false,
