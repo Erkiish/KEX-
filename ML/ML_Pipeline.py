@@ -125,7 +125,7 @@ class MLPipeline:
                 view_false_positives(y_pred=y_pred, y_correct=y_correct, data=self.data_dict['X_unresampled_unscaled'], **view_pn_kwargs)
             
             if view_false_negatives_bool:
-                view_false_positives(y_pred=y_pred, y_correct=y_correct, data=self.data_dict['X_unresampled_unscaled'], **view_pn_kwargs)
+                view_false_negatives(y_pred=y_pred, y_correct=y_correct, data=self.data_dict['X_unresampled_unscaled'], **view_pn_kwargs)
 
 
 
