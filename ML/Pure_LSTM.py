@@ -1,6 +1,6 @@
 import tensorflow as tf
 
-def LSTM_model_x_creator(input_shape: int, n_binary_classifiers: int=1, return_sequences: bool=False) -> tf.keras.models.Sequential:
+def LSTM_model_x_creator(input_shape: int, n_binary_classifiers: int=1, return_sequences: bool=False) -> tf.keras.Model:
 
     model_x = tf.keras.models.Sequential([
         tf.keras.layers.LSTM(50, return_sequences=True, input_shape=input_shape),
